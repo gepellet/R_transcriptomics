@@ -288,17 +288,33 @@ par(mfrow=c(1,1))
 
 ################ Check for all others conditions  ########
 # use of the means of all conditions control
+mean_cell_line = cbind(mean_total_control$rep1_BT20,mean_total_control$rep1_HCC1806) 
+colnames(mean_cell_line)=CellLine_level
 
+# Create many data frame
+names_wells = c()
+list_wells = list()
+for( i in 1:ncol(mean_cell_line)){
+  # select only wells with monotreatments and without control and associate with the right cell line
+  mono_treatment = Design[Design$DrugName2 == "-" & 
+                            Design$pert_type != "ctl_vehicle" & 
+                            Design$CellLine == CellLine_level[i],]
+  drugs = levels(factor(mono_treatment$DrugName))
+  conc = vector("list", length(drugs)) 
+  for (d in 1:length(drugs)){
+    temp = mono_treatment[mono_treatment$DrugName == drugs[d],]
+    conc[[d]] = sort(levels(factor(temp$Conc)))
+    for (c in 1:length(conc[[d]])){
+      name_temp = paste(CellLine_level[i],paste(drugs[d],conc[[d]][c],sep="_"),sep="_")
+      names_wells = c(names_wells,name_temp)
+      temp_wells = temp[temp$Conc == conc[[d]][c],1]
+      list_wells = c(list_wells,list(temp_wells))
+    }
+  }
+}
+names(list_wells)=names_wells
 
-
-
-
-mean_cell_line = 
-
-
-
-
-
+View(list_wells)
 
 
 
