@@ -73,14 +73,15 @@ Total_counts_Norm_median <- function(data_frame){
 # Process = Add an arbitrary value to the count matrix
 #           and apply log trnsformation (log)
 # Output = A data.frame of log transformed counts
-Log_tranform <- function(data_frame,add_on){
-  matrix = as.matrix(as.numeric(unlist(data_frame[,2:ncol(data_frame)])),nrow=nrow(data_frame[,2:ncol(data_frame)]))
+Log_transform <- function(data_frame,add_on){
+  matrix = matrix(as.numeric(unlist(data_frame[,2:ncol(data_frame)])),
+                     nrow=nrow(data_frame[,2:ncol(data_frame)]))
   
   plot(rowMeans(matrix),matrix[,1], col="dodgerblue4",
        main="Reads count normal scale",ylab = "First sample", xlab="Mean gene expression across all sample")
   
   add_matrix = matrix + add_on
-  log_matrix = log(add_matrix)
+  log_matrix = log2(add_matrix)
   plot(rowMeans(log_matrix),log_matrix[,1], col="dodgerblue4",
        main="Reads count log scale",ylab = "First sample", xlab="Mean gene expression across all sample")
 

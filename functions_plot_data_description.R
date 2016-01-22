@@ -4,8 +4,9 @@ Expression_summary <- function(data_frame){
   matrix = matrix(as.numeric(unlist(data_frame[,2:ncol(data_frame)])),nrow=nrow(data_frame[,2:ncol(data_frame)]))
   
   mean_gene_expresion = rowMeans(matrix)
-  boxplot(mean_gene_expresion, col="dodgerblue4", main="Mean gene expression across all control samples")
-  summary_values = quantile(mean_gene_expresion,probs=seq(0,1,.1))  
+  #boxplot(mean_gene_expresion, col="dodgerblue4", main="Mean gene expression across all control samples")
+  summary_values = quantile(mean_gene_expresion,probs=seq(0,1,.1))
+  barplot(summary_values, col="dodgerblue4", main="quantile distribution")
   return(summary_values) 
 }
 
@@ -14,13 +15,9 @@ gene_average_expression <- function(data_frame){
   for (i in 1:nrow(data_frame)){
     average[i] = mean(as.matrix(data_frame[i,2:ncol(data_frame)]))
   }
-  
   hist(average, main = 'Log gene expression average',breaks=30)
   plot(sort(average))
-  
 }
-
-
 
 gene_average_exp_comparison <- function(data_frame1,data_frame2){
   average1=rep(0,nrow(data_frame1))
