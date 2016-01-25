@@ -47,8 +47,8 @@ Upload_design_files <- function(DR_design){
 # PROCESS = Merge barcode file with appropiate design file
 # Output = Barcode of selected rawdata
 
-barcode_file = raw_design_files$plateID
-design_file = raw_design_files[[2]]
+# barcode_file = raw_design_files$plateID
+# design_file = raw_design_files[[2]]
 
 Rawdata_files_name <- function(barcode_file, design_file, design_number, time_point){
   barcode_design = barcode_file[barcode_file$DesignNumber == design_number &
@@ -57,6 +57,40 @@ Rawdata_files_name <- function(barcode_file, design_file, design_number, time_po
   
   return(barcode_design$Barcode)
 }
+
+################################################################################################################
+# Input = Design data directory
+# PROCESS = Show rawdata files matching given characteristics
+# Output = print rawdata files name in the right order
+Show_rawdata_names <- function(DR_rawdata,data_type){
+  # upload rawdata files  
+  setwd(DR_rawdata)
+  DR_rawdata_files = list.files()
+  
+  
+  print("Loading rawdata files...")
+  expr_pattern = paste(".+\\.unq\\.refseq\\.",paste(data_type,"\\.dat",sep=""),sep="")
+  DR_rawdata_T_files = grep(pattern=expr_pattern,DR_rawdata_files,
+                            value=T,fixed=F)
+  
+  # Change files name ! 00
+  adjusted_name_vector = c()
+  for (i in 1:length(DR_rawdata_T_files)){
+    index = regexpr(pattern = "[A-Z][1-9]{1}\\.",DR_rawdata_T_files[i], fixed = F)
+    if (length(index) != 0){
+      replace = paste(substr(DR_rawdata_T_files[i],index,index),'0',
+                      substr(DR_rawdata_T_files[i],index+1,index+2),sep='')
+      adjusted_name_vector[i] = gsub(pattern = "[A-Z][1-9]{1}\\." ,
+                                     replacement = replace ,DR_rawdata_T_files[i], fixed = F)
+    }
+  }
+  right_file_index = order(adjusted_name_vector)
+  print(sort(adjusted_name_vector))
+  
+  
+}
+
+
 
 
 ################################################################################################################
