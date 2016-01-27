@@ -14,7 +14,7 @@ source('nipals.R')
 
 ##########################################################################################################################
 # today's date
-date = "160126"
+date = "160127"
 
 # today's directories
 mine = "/home/marie/Documents/"
@@ -285,12 +285,19 @@ for (el in 1:length(list_wells)){
                              #             Characteristic Direction                #
                              #######################################################
 
-setwd(output_chdir)
+setwd(output)
 
-gene_intersect = matrix(0,15,length(list_wells))
-rownames(gene_intersect)= c("top_100","top_500","top_1000","top_2500","top_5000",seq(1,10))
+gene_intersect = matrix(0,56,length(list_wells))
+rownames(gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
 colnames(gene_intersect)=names(list_wells)
 nb_gene=c(100,500,1000,2500,5000)
+rep_gene_intersect = matrix(0,56,length(list_wells)*2)
+rownames(rep_gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
+names_replicate = c()
+indexes = seq(1,length(list_wells)*2,2)
+
+
+
 for (el in 1:length(list_wells)){
   print(names_wells[el])
   CL = unlist(strsplit(names_wells[el],"_"))
@@ -301,34 +308,83 @@ for (el in 1:length(list_wells)){
   equal_threshold = 1e-5;
   mat_ctl = as.matrix(control[,2:ncol(control)])
   ctl = control[diag(var(t(mat_ctl))) > constantThreshold,]
-#   mat_count = as.matrix(temp_count[,2:ncol(temp_count)])
-#   exp = temp_count[diag(var(t(mat_count))) > constantThreshold,]
-#   
-#   real_ctl =  Select_raws_other_DF(exp,ctl)
-#   real_exp =  Select_raws_other_DF(real_ctl,exp)
   
-  expm = Select_raws_other_DF(ctl,temp_count)
+  if (length(list_wells[[el]]) != 1){
+    mat_count = as.matrix(temp_count[,2:ncol(temp_count)])
+    exp = temp_count[diag(var(t(mat_count))) > constantThreshold,]
+  }else{
+    exp = temp_count
+  }
+  
+  
+  # estimate chDir with replicates
+  real_ctl =  Select_raws_other_DF(exp,ctl)
+  real_exp =  Select_raws_other_DF(real_ctl,exp)
+  
+  chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,2:ncol(real_exp)]),real_ctl[,1]) 
+  names_replicate = c(names_replicate,list_wells[el],list_wells[el])
+  
   chdir_rep=list()
-  # chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,2:ncol(real_exp)]),control[,1]) 
+
+  #estimate chDir without replicates
   for (rep in 1:length(list_wells[[el]])){
-    chdir_temp = chdir(as.matrix(ctl[,2:ncol(ctl)]),as.matrix(expm[,rep+1]),control[,1])
+    chdir_temp = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,rep+1]),real_ctl[,1])
     chdir_rep=c(chdir_rep,list(chdir_temp))
   }
   
-
+  if (length(list_wells[[el]]) == 1){
+    tmp_0 = rownames(chdir_result)
+    tmp_1 = rownames(chdir_rep[[1]])
+    
+    rep_gene_intersect[1,indexes[el]] = as.vector(chdir_rep[[1]]) %*% as.vector(chdir_result)
+    
+    for (g in 2:length(nb_gene)+1){
+      rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+    }
+    for (g in 7:56){
+      gene_intersect[g,el]=tmp_1[g-5]
+      rep_gene_intersect[g,indexes[el]] = tmp_0[g-5]
+    }
+  }else{
+    tmp_0 = rownames(chdir_result)
+    tmp_1 = rownames(chdir_rep[[1]])
+    tmp_2 = rownames(chdir_rep[[2]])
+    
+    gene_intersect[1,el] = as.vector(chdir_rep[[1]]) %*% as.vector(chdir_rep[[2]])
+    rep_gene_intersect[1,indexes[el]] = as.vector(chdir_rep[[1]]) %*% as.vector(chdir_result)
+    rep_gene_intersect[1,indexes[el]+1] = as.vector(chdir_rep[[2]]) %*% as.vector(chdir_result)
+    
+    for (g in 2:length(nb_gene)+1){
+      gene_intersect[g,el]=length(intersect(tmp_1[1:nb_gene[g-1]],tmp_2[1:nb_gene[g-1]]))
+      rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+      rep_gene_intersect[g,indexes[el]+1] = length(intersect(tmp_2[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+    }
+    for (g in 7:51){
+      gene_intersect[g,el]=paste(tmp_1[g-5],tmp_2[g-5],sep = " _ ")
+      rep_gene_intersect[g,indexes[el]] = tmp_0[g-5]
+    }
+  }
   
-  tmp_1 = rownames(chdir_rep[[1]])
-  tmp_2 = rownames(chdir_rep[[2]])
-  for (g in 1:length(nb_gene)){
-    gene_intersect[g,el]=length(intersect(tmp_1[nb_gene[g]],tmp_2[nb_gene[g]]))
-  }
-  for (g in 6:15){
-    gene_intersect[g,el]=paste(tmp_1[g-5],tmp_2[g-5],sep = " _ ")
-  }
 }
 
-setwd(control_output)
+
 write.table(gene_intersect,file=paste(dataset,".txt",sep=""),sep = "\t")
+write.table(rep_gene_intersect,file=paste(dataset,"_rep.txt",sep=""),sep = "\t")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
