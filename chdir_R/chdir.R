@@ -39,13 +39,14 @@ constantThreshold <- 1e-5;
 ctrlConstantGenes <- diag(var(t(ctrl))) < constantThreshold
 expmConstantGenes <- diag(var(t(expm))) < constantThreshold
 
-if (any(ctrlConstantGenes)){
-	errMes <- sprintf('%s row(s) in control expression data are constant. Consider Removing the row(s).',paste(as.character(which(ctrlConstantGenes)),collapse=','))
-	stop(errMes)
-}else if(any(expmConstantGenes)){
-	errMes <- sprintf('%s row(s) in experiment expression data are constant. Consider Removing the row(s).',paste(as.character(which(expmConstantGenes)),collapse=','))
-	stop(errMes)
-}
+
+# if (any(ctrlConstantGenes)){
+#   errMes <- sprintf('%s row(s) in control expression data are constant. Consider Removing the row(s).',paste(as.character(which(ctrlConstantGenes)),collapse=','))
+#   stop(errMes)
+# }else if(any(expmConstantGenes)){
+#   errMes <- sprintf('%s row(s) in experiment expression data are constant. Consider Removing the row(s).',paste(as.character(which(expmConstantGenes)),collapse=','))
+#   stop(errMes)
+# }
 
 # place control gene expression data and experiment gene expression data into
 # one matrix

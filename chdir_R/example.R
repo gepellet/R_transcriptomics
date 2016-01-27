@@ -8,6 +8,7 @@
 # Ma'ayan Lab, Icahn School of Medicine at Mount Sinai
 # Jan. 13, 2014
 
+setwd('/home/marie/Documents/R_transcriptomics/chdir_R')
 source('chdir.R')
 source('nipals.R')
 

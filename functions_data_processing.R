@@ -6,9 +6,13 @@ Minimum_reads <- function(data_frame,nb_reads){
   matrix = as.matrix(data_frame[,2:ncol(data_frame)])
   total_counts = colSums(matrix)
   
+  print(quantile(total_counts,seq(0,1,0.05)))
+  
+  par(mfrow=c(3,1))
   barplot(total_counts[1:100], col="dodgerblue4", main="Total reads count BEFORE normalisation")
-  quantile(total_counts,seq(0,1,0.05))
   boxplot(total_counts,col="dodgerblue4")
+  hist(total_counts,col="dodgerblue4")
+  par(mfrow=c(1,1))
   
   temp_data = data_frame[,2:ncol(data_frame)]
   X = data_frame[,1]

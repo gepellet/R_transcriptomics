@@ -8,7 +8,7 @@ source('functions_data_processing.R')
 source('functions_plot_data_description.R')
 
 ####################################################################################################
-date="160125"
+date="160126"
 ####################################################################################################
 ###   -> UPLOAD FILES
 # set up the right directories
@@ -20,7 +20,7 @@ used_DR = work_linux
 raw_design_files = Upload_design_files(paste(used_DR,"Stage 2016/RAWDATA/Cellcount_20150707",sep=""))
 
 rawdata_name = Rawdata_files_name(raw_design_files$plateID,
-                                  raw_design_files[[2]],
+                                  raw_design_files[[3]],
                                   1,
                                   3)
 
@@ -30,7 +30,7 @@ Show_rawdata_names(paste(used_DR,"Stage 2016/RAWDATA/DGE_20150707",sep=""),"tota
 rawdata_files_total = Upload_rawdata_files(paste(used_DR,"Stage 2016/RAWDATA/DGE_20150707",sep=""),
                                      rawdata_name,
                                      "total",
-                                     c(1))
+                                     c(6))
 
 # rawdata_files_umi = Upload_rawdata_files(paste(used_DR,"Stage 2016/RAWDATA/DGE_20150707",sep=""),
 #                                            rawdata_name,
@@ -50,11 +50,11 @@ rawdata_files_total = Upload_rawdata_files(paste(used_DR,"Stage 2016/RAWDATA/DGE
 
 # check if every wells did work
 # or eliminate them
-good_quality_raw_data = Minimum_reads(rawdata_files_total[[1]],300000)
+good_quality_raw_data = Minimum_reads(rawdata_files_total[[1]],150000)
 
 # coordinate wells/columns name
 raw_total_count_name =  Adjust_Well_Name(colnames(good_quality_raw_data ),T)
-quality_wells = synchronize_quality_wells(raw_total_count_name,raw_design_files[[2]])
+quality_wells = synchronize_quality_wells(raw_total_count_name,raw_design_files[[3]])
 # raw_umi_count_name = Adjust_Well_Name(colnames(rawdata_files_umi[[1]]),T)
 
 # normalize count data
@@ -294,7 +294,7 @@ for (i in 1:length(levels(factor(Design$CellLine)))){
 names(LFC_control) = cell_lines 
 
 
-setwd("/home/marie/Documents/R_output")
+setwd("/home/marie/Documents/R_output/160126/M12/control")
 for (i in 1:length(LFC_control)){
   par(mfrow=c(2,3))
   for (j in 2:ncol(LFC_control[[i]])){
@@ -315,7 +315,7 @@ par(mfrow=c(1,1))
 
 ################ Check for all others conditions  ########
 # use of the means of all conditions control
-mean_cell_line = cbind(mean_total_control$rep1_BT20,mean_total_control$rep1_HCC1806) 
+mean_cell_line = cbind(mean_total_control$rep1_MCF10A,mean_total_control$rep1_MCF7) 
 colnames(mean_cell_line)=CellLine_level
 
 # Create many data frame
@@ -343,8 +343,8 @@ names(list_wells)=names_wells
 
 View(list_wells)
 
-setwd("/home/marie/Documents/R_output/160125/M1")
-wrong_wells=c()
+setwd("/home/marie/Documents/R_output/160126/M12")
+
 for (el in 1:length(list_wells)){
   print(names_wells[el])
   CL = unlist(strsplit(names_wells[el],"_"))
@@ -357,37 +357,61 @@ for (el in 1:length(list_wells)){
   }
   
   genes = list()
-  par(mfrow=c(2,2))
-  for (rep in 1:length(list_wells[[el]])){
-    genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
-    
-    if(rep == length(list_wells[[el]])){
-      nb_commun = length(intersect(genes[[1]],genes[[2]]))
-      final = paste(nb_commun ,paste(" over ",paste(length(genes[[1]]),paste("_",length(genes[[2]])))))
-      print(final)
-      hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
-           xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
-           main= final)
+  par(mfrow=c(2,4))
+  if (length(list_wells[[el]]) !=1){
+    for (rep in 1:length(list_wells[[el]])){
+      genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
       
-    }else{
-    hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
-         xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
+      if(rep == length(list_wells[[el]])){
+        nb_commun = length(intersect(genes[[1]],genes[[2]]))
+        final = paste(nb_commun ,paste(" over ",paste(length(genes[[1]]),paste("_",length(genes[[2]])))))
+        print(final)
+        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
+             main= final)
+        
+      }else{
+        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
+      }
+      
+      # mapplot
+      rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
+      color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
+      ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
+              main=paste("LFC replicate", rep,sep=' '))
+      
     }
-    
-    # mapplot
-    rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
-    color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
-    ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
-            main=paste("LFC replicate", rep,sep=' '))
-
+  }else{
+    for (rep in 1:length(list_wells[[el]])){
+      genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
+      
+      if(rep == length(list_wells[[el]])){
+        #nb_commun = length(intersect(genes[[1]],genes[[2]]))
+        final = paste(names_wells[el],"low quality replicate")
+        print(final)
+        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
+             main= final)
+        
+      }else{
+        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
+      }
+      
+      # mapplot
+      rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
+      color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
+      ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
+              main=paste("LFC replicate", rep,sep=' '))
+      
+    }
   }
   dev.print(device = png, file = paste(date,paste(names_wells[el],".png",sep=""),sep="_"), width = 1000)
   dev.off()
   
 }
 
-
-## Use wrong wells to select negatively the right data_frame
 
 
 
