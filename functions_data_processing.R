@@ -8,11 +8,10 @@ Minimum_reads <- function(data_frame,nb_reads){
   
   print(quantile(total_counts,seq(0,1,0.05)))
   
-  par(mfrow=c(3,1))
   barplot(total_counts[1:100], col="dodgerblue4", main="Total reads count BEFORE normalisation")
-  boxplot(total_counts,col="dodgerblue4")
-  hist(total_counts,col="dodgerblue4")
-  par(mfrow=c(1,1))
+  abline(nb_reads,0,col="red")
+#   boxplot(total_counts,col="dodgerblue4")
+#   hist(total_counts,col="dodgerblue4")
   
   temp_data = data_frame[,2:ncol(data_frame)]
   X = data_frame[,1]
@@ -139,7 +138,8 @@ Select_DataFrame_ValueThreshold_mean <- function(data_frame1,threshold){
   average = rowMeans(matrix(as.numeric(unlist(data_frame1[,2:ncol(data_frame1)])),nrow=nrow(data_frame1[,2:ncol(data_frame1)])))
   
   data_frame1_selected = data_frame1[average>threshold,]
-  
+  abline(threshold,0,col="red")
+  legend(0,10,threshold)
   return(data_frame1_selected)
 }
 
@@ -152,4 +152,10 @@ Select_raws_other_DF <- function(data_frame1,data_frame2){
 }
 
 
-
+angle <- function(x,y){
+  dot.prod <- x%*%y 
+  norm.x <- norm(x,type="2")
+  norm.y <- norm(y,type="2")
+  theta <- acos(dot.prod / (norm.x * norm.y))
+  as.numeric(theta)
+}

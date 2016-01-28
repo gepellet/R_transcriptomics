@@ -1,20 +1,8 @@
 ## Single Plate Analysis
 
 ##########################################################################################################################
-# Upload functions files
-setwd("/home/marie/Documents/R_transcriptomics")
-source('functions_systematic_comparison.R')
-source('functions_data_format.R')
-source('functions_data_processing.R')
-source('functions_plot_data_description.R')
-
-setwd('/home/marie/Documents/R_transcriptomics/chdir_R')
-source('chdir.R')
-source('nipals.R')
-
-##########################################################################################################################
 # today's date
-date = "160127"
+date = "160128"
 
 # today's directories
 mine = "/home/marie/Documents/"
@@ -24,6 +12,7 @@ used_DR = work_linux
 
 # today's output directories
 dataset = "M1"
+type = "total"
 control_output = paste(used_DR,
                        paste("R_output",
                              paste(date,
@@ -35,7 +24,19 @@ output = paste(used_DR,
 output_chdir = paste(used_DR,
                      paste("R_output",
                            paste(date,
-                                 paste(dataset,"chdir",sep="/"),sep = "/"),sep = ""),sep="")
+                                 paste(dataset,type,sep="/"),sep = "/"),sep = ""),sep="")
+
+##########################################################################################################################
+# Upload functions files
+setwd(paste(used_DR,"R_transcriptomics",sep=""))
+source('functions_systematic_comparison.R')
+source('functions_data_format.R')
+source('functions_data_processing.R')
+source('functions_plot_data_description.R')
+
+setwd(paste(used_DR,'R_transcriptomics/chdir_R',sep=""))
+source('chdir.R')
+source('nipals.R')
 
 ##########################################################################################################################
 # Upload files
@@ -58,7 +59,13 @@ rawdata_files_total = Upload_rawdata_files(paste(used_DR,"Stage 2016/RAWDATA/DGE
 ##########################################################################################################################
 # Data pre-processing
 
-good_quality_raw_data = Minimum_reads(rawdata_files_total[[1]],150000)
+good_quality_raw_data = Minimum_reads(rawdata_files_total[[1]],200000)
+
+setwd(output)
+dev.print(device = png, file = paste(date,
+                                     paste(dataset,
+                                           paste(type,"quality_wells.png",sep="_"),sep="_"),sep="_"), width = 600)
+dev.off()
 
 # coordinate wells/columns name
 raw_total_count_name =  Adjust_Well_Name(colnames(good_quality_raw_data ),T)
@@ -85,9 +92,17 @@ Design = quality_wells
 control_wells = Design[Design$pert_type == "ctl_vehicle",1]
 control_total_counts = Select_DataFrame(processed_total[[1]],control_wells)
 control_total_expression_values = Expression_summary(control_total_counts)
+print(control_total_expression_values)
 
 expressed_control_total = Select_DataFrame_ValueThreshold_mean(control_total_counts,
                                                                as.numeric(control_total_expression_values[5]))
+
+setwd(output)
+dev.print(device = png, file = paste(date,
+                                     paste(dataset,
+                                           paste(type,"expression.png",sep="_"),sep="_"),sep="_"), width = 600)
+dev.off()
+
 
 Expression_summary(expressed_control_total)
 total = list(rep1 = Select_raws_other_DF(expressed_control_total,processed_total[[1]]))
@@ -148,8 +163,8 @@ for (i in 1:length(LFC_control)){
     print(quantile(as.numeric(temp[,j]),probs=seq(0,1,.1)))
     
   }
-  dev.print(device = png, file = paste(date,paste(cell_lines[i],"_control.png",sep=""),sep="_"), width = 600)
-  dev.off()
+#   dev.print(device = png, file = paste(date,paste(cell_lines[i],"_control.png",sep=""),sep="_"), width = 600)
+#   dev.off()
 }
 par(mfrow=c(1,1))
 
@@ -203,6 +218,7 @@ for(i in 1:ncol(mean_cell_line)){
 }
 names(list_wells)=names_wells
 
+
 View(list_wells)
 print(length(list_wells))
 
@@ -212,80 +228,120 @@ print(length(list_wells))
                               #######################################################
                               #             Fold-Change Estimation                  #
                               #######################################################
-
-setwd(output)
-
-for (el in 1:length(list_wells)){
-  print(names_wells[el])
-  CL = unlist(strsplit(names_wells[el],"_"))
-  control = mean_cell_line[,CL[1]]
-  temp_count = Select_DataFrame(total[[1]],list_wells[[el]]) 
-  LFC_temp = matrix(0,nrow(temp_count),ncol(temp_count))
-  LFC_temp[,1]=temp_count[,1]
-  for (rep in 1:length(list_wells[[el]])){
-    LFC_temp[,rep+1] = as.numeric(temp_count[,rep+1]) - control 
-  }
-  
-  genes = list()
-  par(mfrow=c(2,4))
-  if (length(list_wells[[el]]) !=1){
-    for (rep in 1:length(list_wells[[el]])){
-      genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
-      
-      if(rep == length(list_wells[[el]])){
-        nb_commun = length(intersect(genes[[1]],genes[[2]]))
-        final = paste(nb_commun ,paste(" over ",paste(length(genes[[1]]),paste("_",length(genes[[2]])))))
-        print(final)
-        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
-             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
-             main= final)
-        
-      }else{
-        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
-             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
-      }
-      
-      # mapplot
-      rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
-      color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
-      ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
-              main=paste("LFC replicate", rep,sep=' '))
-      
-    }
-  }else{
-    for (rep in 1:length(list_wells[[el]])){
-      genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
-      
-      if(rep == length(list_wells[[el]])){
-        #nb_commun = length(intersect(genes[[1]],genes[[2]]))
-        final = paste(names_wells[el],"low quality replicate")
-        print(final)
-        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
-             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
-             main= final)
-        
-      }else{
-        hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
-             xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
-      }
-      
-      # mapplot
-      rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
-      color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
-      ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
-              main=paste("LFC replicate", rep,sep=' '))
-      
-    }
-  }
-  dev.print(device = png, file = paste(date,paste(names_wells[el],".png",sep=""),sep="_"), width = 1000)
-  dev.off()
-}
+# 
+# setwd(output)
+# 
+# for (el in 1:length(list_wells)){
+#   print(names_wells[el])
+#   CL = unlist(strsplit(names_wells[el],"_"))
+#   control = mean_cell_line[,CL[1]]
+#   temp_count = Select_DataFrame(total[[1]],list_wells[[el]]) 
+#   LFC_temp = matrix(0,nrow(temp_count),ncol(temp_count))
+#   LFC_temp[,1]=temp_count[,1]
+#   for (rep in 1:length(list_wells[[el]])){
+#     LFC_temp[,rep+1] = as.numeric(temp_count[,rep+1]) - control 
+#   }
+#   
+#   genes = list()
+#   par(mfrow=c(2,4))
+#   if (length(list_wells[[el]]) !=1){
+#     for (rep in 1:length(list_wells[[el]])){
+#       genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
+#       
+#       if(rep == length(list_wells[[el]])){
+#         nb_commun = length(intersect(genes[[1]],genes[[2]]))
+#         final = paste(nb_commun ,paste(" over ",paste(length(genes[[1]]),paste("_",length(genes[[2]])))))
+#         print(final)
+#         hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+#              xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
+#              main= final)
+#         
+#       }else{
+#         hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+#              xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
+#       }
+#       
+#       # mapplot
+#       rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
+#       color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
+#       ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
+#               main=paste("LFC replicate", rep,sep=' '))
+#       
+#     }
+#   }else{
+#     for (rep in 1:length(list_wells[[el]])){
+#       genes = c(genes,list(LFC_temp[abs(as.numeric(LFC_temp[,rep+1]))>2,1]))
+#       
+#       if(rep == length(list_wells[[el]])){
+#         #nb_commun = length(intersect(genes[[1]],genes[[2]]))
+#         final = paste(names_wells[el],"low quality replicate")
+#         print(final)
+#         hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+#              xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),
+#              main= final)
+#         
+#       }else{
+#         hist(as.numeric(LFC_temp[,rep+1]),col="dodgerblue4",
+#              xlab = paste("LFC replicate", paste(rep,list_wells[[el]][rep],sep="_"),sep=' '),main=names_wells[el])
+#       }
+#       
+#       # mapplot
+#       rbPal <- colorRampPalette(c('darkgreen','palegreen4','grey10','firebrick','darkred'))
+#       color<- rbPal(5)[cut(as.numeric(LFC_temp[,rep+1]),breaks = 5)]
+#       ma.plot(mean_total[[1]],as.numeric(LFC_temp[,rep+1]),cex=1,col=color,
+#               main=paste("LFC replicate", rep,sep=' '))
+#       
+#     }
+#   }
+#   dev.print(device = png, file = paste(date,paste(names_wells[el],".png",sep=""),sep="_"), width = 1000)
+#   dev.off()
+# }
 
                              #######################################################
                              #             Characteristic Direction                #
                              #######################################################
 
 setwd(output)
+
+##################################################################################################################
+# specific conditions testing #
+
+print(names_wells)
+
+specific_wells = c("BT20_AZD8330_3.3333_-_0",
+                   "BT20_BEZ235_1.1111_-_0",
+                   "BT20_BYL719_10_-_0",
+                   "BT20_BYL719_3.3333_-_0",
+                   "BT20_Dasatinib_1.1111_-_0",
+                   "BT20_GSK1059615_3.3333_-_0",
+                   "BT20_Lapatinib_3.3333_-_0",
+                   "BT20_Neratinib_3.3333_-_0",
+                   "BT20_NVP-TAE684_3.3333_-_0",
+                   "BT20_Palbociclib_3.3333_-_0",
+                   "BT20_Rapamycin_3.3333_-_0",
+                   "BT20_Saracatinib_3.3333_-_0",
+                   "BT20_Trametinib_3.3333_-_0",
+                   "HCC1806_AZ20_3.1623_-_0",
+                   "HCC1806_AZD8055_3.1623_-_0",
+                   "HCC1806_BEZ235_1_-_0",
+                   "HCC1806_BYL719_10_-_0",
+                   "HCC1806_Dasatinib_2_-_0",
+                   "HCC1806_GSK1059615_10_-_0",
+                   "HCC1806_KU60019_3.1623_-_0",
+                   "HCC1806_Lapatinib_20_-_0",
+                   "HCC1806_Linsitinib_20_-_0",
+                   "HCC1806_Saracatinib_10_-_0",
+                   "HCC1806_NVP-TAE684_10_-_0",
+                   "HCC1806_Torin2_0.31623_-_0",
+                   "HCC1806_VE821_3.1623_-_0"
+                   )
+
+list_wells_save = list_wells
+list_wells = list_wells_save[names(list_wells_save) %in% specific_wells] 
+names_wells = names(list_wells)
+
+
+##################################################################################################################
 
 gene_intersect = matrix(0,56,length(list_wells))
 rownames(gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
@@ -303,19 +359,19 @@ for (el in 1:length(list_wells)){
   CL = unlist(strsplit(names_wells[el],"_"))
   control = control_total[[CL[1]]]
   temp_count = Select_DataFrame(total[[1]],list_wells[[el]]) 
+  print(list_wells[[el]])
   
   # remove equals row
   equal_threshold = 1e-5;
   mat_ctl = as.matrix(control[,2:ncol(control)])
-  ctl = control[diag(var(t(mat_ctl))) > constantThreshold,]
+  ctl = control[diag(var(t(mat_ctl))) > equal_threshold,]
   
   if (length(list_wells[[el]]) != 1){
     mat_count = as.matrix(temp_count[,2:ncol(temp_count)])
-    exp = temp_count[diag(var(t(mat_count))) > constantThreshold,]
+    exp = temp_count[diag(var(t(mat_count))) > equal_threshold,]
   }else{
     exp = temp_count
   }
-  
   
   # estimate chDir with replicates
   real_ctl =  Select_raws_other_DF(exp,ctl)
@@ -336,9 +392,9 @@ for (el in 1:length(list_wells)){
     tmp_0 = rownames(chdir_result)
     tmp_1 = rownames(chdir_rep[[1]])
     
-    rep_gene_intersect[1,indexes[el]] = as.vector(chdir_rep[[1]]) %*% as.vector(chdir_result)
+    rep_gene_intersect[1,indexes[el]] =cor(as.vector(chdir_rep[[1]]),as.vector(chdir_result))
     
-    for (g in 2:length(nb_gene)+1){
+    for (g in 1:length(nb_gene)+1){
       rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
     }
     for (g in 7:56){
@@ -350,11 +406,11 @@ for (el in 1:length(list_wells)){
     tmp_1 = rownames(chdir_rep[[1]])
     tmp_2 = rownames(chdir_rep[[2]])
     
-    gene_intersect[1,el] = as.vector(chdir_rep[[1]]) %*% as.vector(chdir_rep[[2]])
-    rep_gene_intersect[1,indexes[el]] = as.vector(chdir_rep[[1]]) %*% as.vector(chdir_result)
-    rep_gene_intersect[1,indexes[el]+1] = as.vector(chdir_rep[[2]]) %*% as.vector(chdir_result)
+    gene_intersect[1,el] = cor(as.vector(chdir_rep[[1]]),as.vector(chdir_rep[[2]]))
+    rep_gene_intersect[1,indexes[el]] = cor(as.vector(chdir_rep[[1]]),as.vector(chdir_result))
+    rep_gene_intersect[1,indexes[el]+1] = cor(as.vector(chdir_rep[[2]]) ,as.vector(chdir_result))
     
-    for (g in 2:length(nb_gene)+1){
+    for (g in 1:length(nb_gene)+1){
       gene_intersect[g,el]=length(intersect(tmp_1[1:nb_gene[g-1]],tmp_2[1:nb_gene[g-1]]))
       rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
       rep_gene_intersect[g,indexes[el]+1] = length(intersect(tmp_2[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
@@ -370,7 +426,6 @@ for (el in 1:length(list_wells)){
 
 write.table(gene_intersect,file=paste(dataset,".txt",sep=""),sep = "\t")
 write.table(rep_gene_intersect,file=paste(dataset,"_rep.txt",sep=""),sep = "\t")
-
 
 
 
