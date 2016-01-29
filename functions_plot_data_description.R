@@ -5,7 +5,7 @@ Expression_summary <- function(data_frame){
   
   mean_gene_expresion = rowMeans(matrix)
   #boxplot(mean_gene_expresion, col="dodgerblue4", main="Mean gene expression across all control samples")
-  summary_values = quantile(mean_gene_expresion,probs=seq(0,1,.1))
+  summary_values = quantile(mean_gene_expresion,probs=seq(0,1,.05))
   barplot(summary_values, col="dodgerblue4", main="quantile distribution")
   return(summary_values) 
 }

@@ -152,6 +152,12 @@ Select_raws_other_DF <- function(data_frame1,data_frame2){
 }
 
 
+Select_rows <- function(data_frame1,rows_vector){
+  data_frame1_selected = data_frame1[data_frame1[,1] %in% rows_vector,]
+  return(data_frame1_selected)
+}
+
+
 angle <- function(x,y){
   dot.prod <- x%*%y 
   norm.x <- norm(x,type="2")

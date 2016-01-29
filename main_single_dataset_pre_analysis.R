@@ -2,7 +2,7 @@
 
 ##########################################################################################################################
 # today's date
-date = "160128"
+date = "160128_bis"
 
 # today's directories
 mine = "/home/marie/Documents/"
@@ -11,7 +11,7 @@ work_linux = "/home/marie/Documents/"
 used_DR = work_linux
 
 # today's output directories
-dataset = "M1"
+dataset = "M12"
 type = "total"
 control_output = paste(used_DR,
                        paste("R_output",
@@ -44,22 +44,22 @@ source('nipals.R')
 raw_design_files = Upload_design_files(paste(used_DR,"Stage 2016/RAWDATA/Cellcount_20150707",sep=""))
 
 rawdata_name = Rawdata_files_name(raw_design_files$plateID,
-                                  raw_design_files[[2]],  # Make sure it is the good design file
-                                  1,
-                                  3)
+                                  raw_design_files[[3]],  # Make sure it is the good design file
+                                  ,
+                                  24)
 
 print("Files names")
-Show_rawdata_names(paste(used_DR,"Stage 2016/RAWDATA/DGE_20150707",sep=""),"total")
+Show_rawdata_names(paste(used_DR,"Stage 2016/RAWDATA/DGE_20150707",sep=""),type)
 
 rawdata_files_total = Upload_rawdata_files(paste(used_DR,"Stage 2016/RAWDATA/DGE_20150707",sep=""),
                                            rawdata_name,
-                                           "total",
-                                           c(1))    # Make sure it is the right file number
+                                           type,
+                                           c(6))    # Make sure it is the right file number
 
 ##########################################################################################################################
 # Data pre-processing
 
-good_quality_raw_data = Minimum_reads(rawdata_files_total[[1]],200000)
+good_quality_raw_data = Minimum_reads(rawdata_files_total[[1]],150000)
 
 setwd(output)
 dev.print(device = png, file = paste(date,
@@ -69,7 +69,7 @@ dev.off()
 
 # coordinate wells/columns name
 raw_total_count_name =  Adjust_Well_Name(colnames(good_quality_raw_data ),T)
-quality_wells = synchronize_quality_wells(raw_total_count_name,raw_design_files[[2]])
+quality_wells = synchronize_quality_wells(raw_total_count_name,raw_design_files[[3]])
 
 # normalize count data
 normalized_total = list()
@@ -95,12 +95,12 @@ control_total_expression_values = Expression_summary(control_total_counts)
 print(control_total_expression_values)
 
 expressed_control_total = Select_DataFrame_ValueThreshold_mean(control_total_counts,
-                                                               as.numeric(control_total_expression_values[5]))
+                                                               as.numeric(control_total_expression_values[7]))
 
 setwd(output)
 dev.print(device = png, file = paste(date,
                                      paste(dataset,
-                                           paste(type,"expression.png",sep="_"),sep="_"),sep="_"), width = 600)
+                                           paste(type,"expression_40.png",sep="_"),sep="_"),sep="_"), width = 600)
 dev.off()
 
 
@@ -219,8 +219,10 @@ for(i in 1:ncol(mean_cell_line)){
 names(list_wells)=names_wells
 
 
-View(list_wells)
+# View(list_wells)
 print(length(list_wells))
+
+# nrow(unique(Design[,2:9]))
 
 ##########################################################################################################################
 # Dataset conditions testing
@@ -307,34 +309,56 @@ setwd(output)
 # specific conditions testing #
 
 print(names_wells)
+# 
+# specific_wells = c("BT20_AZD8330_3.3333_-_0",
+#                    "BT20_BEZ235_1.1111_-_0",
+#                    "BT20_BYL719_10_-_0",
+#                    "BT20_BYL719_3.3333_-_0",
+#                    "BT20_Dasatinib_1.1111_-_0",
+#                    "BT20_GSK1059615_3.3333_-_0",
+#                    "BT20_Lapatinib_3.3333_-_0",
+#                    "BT20_Neratinib_3.3333_-_0",
+#                    "BT20_NVP-TAE684_3.3333_-_0",
+#                    "BT20_Palbociclib_3.3333_-_0",
+#                    "BT20_Rapamycin_3.3333_-_0",
+#                    "BT20_Saracatinib_3.3333_-_0",
+#                    "BT20_Trametinib_3.3333_-_0",
+#                    "HCC1806_AZ20_3.1623_-_0",
+#                    "HCC1806_AZD8055_3.1623_-_0",
+#                    "HCC1806_BEZ235_1_-_0",
+#                    "HCC1806_BYL719_10_-_0",
+#                    "HCC1806_Dasatinib_2_-_0",
+#                    "HCC1806_GSK1059615_10_-_0",
+#                    "HCC1806_KU60019_3.1623_-_0",
+#                    "HCC1806_Lapatinib_20_-_0",
+#                    "HCC1806_Linsitinib_20_-_0",
+#                    "HCC1806_Saracatinib_10_-_0",
+#                    "HCC1806_NVP-TAE684_10_-_0",
+#                    "HCC1806_Torin2_0.31623_-_0",
+#                    "HCC1806_VE821_3.1623_-_0"
+#                    )
 
-specific_wells = c("BT20_AZD8330_3.3333_-_0",
-                   "BT20_BEZ235_1.1111_-_0",
-                   "BT20_BYL719_10_-_0",
-                   "BT20_BYL719_3.3333_-_0",
-                   "BT20_Dasatinib_1.1111_-_0",
-                   "BT20_GSK1059615_3.3333_-_0",
-                   "BT20_Lapatinib_3.3333_-_0",
-                   "BT20_Neratinib_3.3333_-_0",
-                   "BT20_NVP-TAE684_3.3333_-_0",
-                   "BT20_Palbociclib_3.3333_-_0",
-                   "BT20_Rapamycin_3.3333_-_0",
-                   "BT20_Saracatinib_3.3333_-_0",
-                   "BT20_Trametinib_3.3333_-_0",
-                   "HCC1806_AZ20_3.1623_-_0",
-                   "HCC1806_AZD8055_3.1623_-_0",
-                   "HCC1806_BEZ235_1_-_0",
-                   "HCC1806_BYL719_10_-_0",
-                   "HCC1806_Dasatinib_2_-_0",
-                   "HCC1806_GSK1059615_10_-_0",
-                   "HCC1806_KU60019_3.1623_-_0",
-                   "HCC1806_Lapatinib_20_-_0",
-                   "HCC1806_Linsitinib_20_-_0",
-                   "HCC1806_Saracatinib_10_-_0",
-                   "HCC1806_NVP-TAE684_10_-_0",
-                   "HCC1806_Torin2_0.31623_-_0",
-                   "HCC1806_VE821_3.1623_-_0"
-                   )
+specific_wells= c("MCF10A_BEZ235_1_-_0",
+                  "MCF10A_BYL719_3.1623_-_0",
+                  "MCF10A_Dasatinib_2_-_0",
+                  "MCF10A_Lapatinib_3.1623_-_0",
+                  "MCF10A_Linsitinib_20_-_0",
+                  "MCF10A_NVP-TAE684_10_-_0",
+                  "MCF10A_Palbociclib_3.1623_-_0",
+                  "MCF10A_Rapamycin_1_-_0",
+                  "MCF10A_Saracatinib_10_-_0",
+                  "MCF10A_Torin2_0.31623_-_0",
+                  "MCF10A_Trametinib_3.1623_-_0",
+                  "MCF7_BEZ235_1_-_0" ,
+                  "MCF7_BYL719_3.1623_-_0",
+                  "MCF7_Dasatinib_2_-_0",
+                  "MCF7_Lapatinib_10_-_0",
+                  "MCF7_Linsitinib_3.1623_-_0",
+                  "MCF7_NVP-TAE684_10_-_0",
+                  "MCF7_Palbociclib_3.1623_-_0",
+                  "MCF7_Saracatinib_10_-_0" ,
+                  "MCF7_Trametinib_3.1623_-_0")
+
 
 list_wells_save = list_wells
 list_wells = list_wells_save[names(list_wells_save) %in% specific_wells] 
@@ -342,16 +366,101 @@ names_wells = names(list_wells)
 
 
 ##################################################################################################################
+# 
+# gene_intersect = matrix(0,56,length(list_wells))
+# rownames(gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
+# colnames(gene_intersect)=names(list_wells)
+# nb_gene=c(100,500,1000,2500,5000)
+# rep_gene_intersect = matrix(0,56,length(list_wells)*2)
+# rownames(rep_gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
+# names_replicate = c()
+# indexes = seq(1,length(list_wells)*2,2)
+# 
+# 
+# 
+# for (el in 1:length(list_wells)){
+#   print(names_wells[el])
+#   CL = unlist(strsplit(names_wells[el],"_"))
+#   control = control_total[[CL[1]]]
+#   temp_count = Select_DataFrame(total[[1]],list_wells[[el]]) 
+#   print(list_wells[[el]])
+#   
+#   # remove equals row
+#   equal_threshold = 1e-5;
+#   mat_ctl = as.matrix(control[,2:ncol(control)])
+#   ctl = control[diag(var(t(mat_ctl))) > equal_threshold,]
+#   
+#   if (length(list_wells[[el]]) != 1){
+#     mat_count = as.matrix(temp_count[,2:ncol(temp_count)])
+#     exp = temp_count[diag(var(t(mat_count))) > equal_threshold,]
+#   }else{
+#     exp = temp_count
+#   }
+#   
+#   # estimate chDir with replicates
+#   real_ctl =  Select_raws_other_DF(exp,ctl)
+#   real_exp =  Select_raws_other_DF(real_ctl,exp)
+#   
+#   chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,2:ncol(real_exp)]),real_ctl[,1]) 
+#   names_replicate = c(names_replicate,names_wells[el],names_wells[el])
+#   
+#   chdir_rep=list()
+# 
+#   #estimate chDir without replicates
+#   for (rep in 1:length(list_wells[[el]])){
+#     chdir_temp = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,rep+1]),real_ctl[,1])
+#     chdir_rep=c(chdir_rep,list(chdir_temp))
+#   }
+#   
+#   if (length(list_wells[[el]]) == 1){
+#     tmp_0 = rownames(chdir_result)
+#     tmp_1 = rownames(chdir_rep[[1]])
+#     
+#     rep_gene_intersect[1,indexes[el]] = cos(angle(as.vector(chdir_rep[[1]]),as.vector(chdir_result)))
+#     
+#     for (g in 1:length(nb_gene)+1){
+#       rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+#     }
+#     for (g in 7:56){
+#       gene_intersect[g,el]=tmp_1[g-5]
+#       rep_gene_intersect[g,indexes[el]] = tmp_0[g-5]
+#       rep_gene_intersect[g,indexes[el]+1] = chdir_result[g-5,1]
+#     }
+#   }else{
+#     tmp_0 = rownames(chdir_result)
+#     tmp_1 = rownames(chdir_rep[[1]])
+#     tmp_2 = rownames(chdir_rep[[2]])
+#     
+# #     as.vector(chdir_rep[[1]])%*%as.vector(chdir_rep[[2]])
+# #     cos(angle(as.vector(chdir_rep[[1]]),as.vector(chdir_rep[[2]])))
+#     gene_intersect[1,el] = cos(angle(as.vector(chdir_rep[[1]]),as.vector(chdir_rep[[2]])))
+#     rep_gene_intersect[1,indexes[el]] = cos(angle(as.vector(chdir_rep[[1]]),as.vector(chdir_result)))
+#     rep_gene_intersect[1,indexes[el]+1] = cos(angle(as.vector(chdir_rep[[2]]) ,as.vector(chdir_result)))
+#     
+#     for (g in 1:length(nb_gene)+1){
+#       gene_intersect[g,el]=length(intersect(tmp_1[1:nb_gene[g-1]],tmp_2[1:nb_gene[g-1]]))
+#       rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+#       rep_gene_intersect[g,indexes[el]+1] = length(intersect(tmp_2[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+#     }
+#     for (g in 7:51){
+#       gene_intersect[g,el]=paste(tmp_1[g-5],tmp_2[g-5],sep = " _ ")
+#       rep_gene_intersect[g,indexes[el]] = tmp_0[g-5]
+#     }
+#   }
+#   
+# }
+# colnames(rep_gene_intersect) = names_replicate
+# 
+# write.table(gene_intersect,file=paste(dataset,paste(type,"exp_40.txt",sep="_"),sep="_"),sep = "\t")
+# write.table(rep_gene_intersect,file=paste(dataset,paste(type,"exp_40_rep.txt",sep="_"),sep="_"),sep = "\t")
 
-gene_intersect = matrix(0,56,length(list_wells))
-rownames(gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
-colnames(gene_intersect)=names(list_wells)
+
+##################################################################################################################
 nb_gene=c(100,500,1000,2500,5000)
-rep_gene_intersect = matrix(0,56,length(list_wells)*2)
+rep_gene_intersect = matrix(0,56,length(list_wells)*4)
 rownames(rep_gene_intersect)= c("angle","top_100","top_500","top_1000","top_2500","top_5000",seq(1,50))
-names_replicate = c()
-indexes = seq(1,length(list_wells)*2,2)
-
+names_replicate = matrix(0,1,length(list_wells)*4)
+indexes = seq(1,length(list_wells)*4,4)
 
 
 for (el in 1:length(list_wells)){
@@ -366,97 +475,70 @@ for (el in 1:length(list_wells)){
   mat_ctl = as.matrix(control[,2:ncol(control)])
   ctl = control[diag(var(t(mat_ctl))) > equal_threshold,]
   
-  if (length(list_wells[[el]]) != 1){
-    mat_count = as.matrix(temp_count[,2:ncol(temp_count)])
-    exp = temp_count[diag(var(t(mat_count))) > equal_threshold,]
-  }else{
-    exp = temp_count
-  }
+  mat_count = as.matrix(temp_count[,2:ncol(temp_count)])
+  exp = temp_count[diag(var(t(mat_count))) > equal_threshold,]
+
   
   # estimate chDir with replicates
   real_ctl =  Select_raws_other_DF(exp,ctl)
   real_exp =  Select_raws_other_DF(real_ctl,exp)
   
   chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,2:ncol(real_exp)]),real_ctl[,1]) 
-  names_replicate = c(names_replicate,list_wells[el],list_wells[el])
+  names_replicate[indexes[el]] = names_wells[el]
   
   chdir_rep=list()
-
+  
   #estimate chDir without replicates
   for (rep in 1:length(list_wells[[el]])){
     chdir_temp = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,rep+1]),real_ctl[,1])
     chdir_rep=c(chdir_rep,list(chdir_temp))
   }
   
-  if (length(list_wells[[el]]) == 1){
+  if (length(list_wells[[el]]) == 3){
     tmp_0 = rownames(chdir_result)
     tmp_1 = rownames(chdir_rep[[1]])
-    
-    rep_gene_intersect[1,indexes[el]] =cor(as.vector(chdir_rep[[1]]),as.vector(chdir_result))
+    tmp_2 = rownames(chdir_rep[[2]])
+    tmp_3 = rownames(chdir_rep[[3]])
+
+    rep_gene_intersect[1,indexes[el]] = cos(angle(as.vector(chdir_rep[[1]]),as.vector(chdir_result)))
+    rep_gene_intersect[1,indexes[el]+1] = cos(angle(as.vector(chdir_rep[[2]]) ,as.vector(chdir_result)))
+    rep_gene_intersect[1,indexes[el]+2] = cos(angle(as.vector(chdir_rep[[3]]) ,as.vector(chdir_result)))
     
     for (g in 1:length(nb_gene)+1){
       rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+      rep_gene_intersect[g,indexes[el]+1] = length(intersect(tmp_2[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+      rep_gene_intersect[g,indexes[el]+2] = length(intersect(tmp_3[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
     }
-    for (g in 7:56){
-      gene_intersect[g,el]=tmp_1[g-5]
+    for (g in 7:51){
       rep_gene_intersect[g,indexes[el]] = tmp_0[g-5]
     }
   }else{
     tmp_0 = rownames(chdir_result)
     tmp_1 = rownames(chdir_rep[[1]])
     tmp_2 = rownames(chdir_rep[[2]])
+    tmp_3 = rownames(chdir_rep[[3]])
+    tmp_4 = rownames(chdir_rep[[4]])
     
-    gene_intersect[1,el] = cor(as.vector(chdir_rep[[1]]),as.vector(chdir_rep[[2]]))
-    rep_gene_intersect[1,indexes[el]] = cor(as.vector(chdir_rep[[1]]),as.vector(chdir_result))
-    rep_gene_intersect[1,indexes[el]+1] = cor(as.vector(chdir_rep[[2]]) ,as.vector(chdir_result))
+    rep_gene_intersect[1,indexes[el]] = cos(angle(as.vector(chdir_rep[[1]]),as.vector(chdir_result)))
+    rep_gene_intersect[1,indexes[el]+1] = cos(angle(as.vector(chdir_rep[[2]]) ,as.vector(chdir_result)))
+    rep_gene_intersect[1,indexes[el]+2] = cos(angle(as.vector(chdir_rep[[3]]) ,as.vector(chdir_result)))
+    rep_gene_intersect[1,indexes[el]+3] = cos(angle(as.vector(chdir_rep[[4]]) ,as.vector(chdir_result)))
     
     for (g in 1:length(nb_gene)+1){
-      gene_intersect[g,el]=length(intersect(tmp_1[1:nb_gene[g-1]],tmp_2[1:nb_gene[g-1]]))
       rep_gene_intersect[g,indexes[el]] = length(intersect(tmp_1[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
       rep_gene_intersect[g,indexes[el]+1] = length(intersect(tmp_2[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+      rep_gene_intersect[g,indexes[el]+2] = length(intersect(tmp_3[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
+      rep_gene_intersect[g,indexes[el]+3] = length(intersect(tmp_4[1:nb_gene[g-1]],tmp_0[1:nb_gene[g-1]]))
     }
     for (g in 7:51){
-      gene_intersect[g,el]=paste(tmp_1[g-5],tmp_2[g-5],sep = " _ ")
       rep_gene_intersect[g,indexes[el]] = tmp_0[g-5]
     }
   }
   
 }
+colnames(rep_gene_intersect) = names_replicate
 
-
-write.table(gene_intersect,file=paste(dataset,".txt",sep=""),sep = "\t")
-write.table(rep_gene_intersect,file=paste(dataset,"_rep.txt",sep=""),sep = "\t")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+write.table(rep_gene_intersect,file=paste(dataset,paste(type,"exp_40_rep.txt",sep="_"),sep="_"),sep = "\t")
 
 
 
