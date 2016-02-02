@@ -1,8 +1,8 @@
-## Multiplate data storage....
+## Replicate - characteristic direction analysis
 
 ##########################################################################################################################
 # today's date
-date = "160129"
+date = "160202/replicates"
 
 # today's directories
 mine = "/home/marie/Documents/"
@@ -30,8 +30,9 @@ setwd(processed)
 dataset_dataframe=as.matrix(read.csv("dataset_summary.csv",header=T,sep="\t"))
 
 
-for(f in 1:ncol(dataset_dataframe)){
 
+for(f in 9:ncol(dataset_dataframe)){
+  
   File_number = f
   dataset=dataset_dataframe[1,File_number]
   type=dataset_dataframe[2,File_number]
@@ -42,8 +43,8 @@ for(f in 1:ncol(dataset_dataframe)){
                                paste(date,
                                      paste(dataset,"control",sep="/"),sep = "/"),sep = ""),sep="")
   output = paste(used_DR,
-                 paste("R_output",
-                       paste(date,dataset,sep="/"),sep = "/"),sep = "")
+                 paste("R_output",date
+                      ,sep = "/"),sep = "")
   
   output_chdir = paste(used_DR,
                        paste("R_output",
@@ -101,28 +102,28 @@ for(f in 1:ncol(dataset_dataframe)){
   
   processed_total=list(processed_total)
   Design = quality_wells
-#   control_total_expression_values = Expression_summary(processed_total[[1]])
-#   print(control_total_expression_values)
-#   
-#   expressed_control_total = Select_DataFrame_ValueThreshold_mean(processed_total[[1]],
-#                                                                  as.numeric(control_total_expression_values[16]))
-#   test=ref
-#   ref = intersect(test,expressed_control_total[,1])
-
+  #   control_total_expression_values = Expression_summary(processed_total[[1]])
+  #   print(control_total_expression_values)
+  #   
+  #   expressed_control_total = Select_DataFrame_ValueThreshold_mean(processed_total[[1]],
+  #                                                                  as.numeric(control_total_expression_values[16]))
+  #   test=ref
+  #   ref = intersect(test,expressed_control_total[,1])
+  
   setwd(processed)
   expressed_rows = read.delim("30_expressed_all_plates.txt", stringsAsFactors=F, sep = '\t', header = F)
   total = list(rep1 = Select_rows(processed_total[[1]],expressed_rows[2:nrow(expressed_rows),2]))
-
-#}
-
-
-# setwd(processed)
-# write.table(ref,file="30_expressed_all_plates.txt",sep = "\t")
-
-
-##########################################################################################################################
-# Dataset control splitting
-
+  
+  #}
+  
+  
+  # setwd(processed)
+  # write.table(ref,file="30_expressed_all_plates.txt",sep = "\t")
+  
+  
+  ##########################################################################################################################
+  # Dataset control splitting
+  
   CellLine_level = names(table(Design$CellLine))
   
   control_total = list()
@@ -193,6 +194,33 @@ for(f in 1:ncol(dataset_dataframe)){
   
   ##########################################################################################################################
   # Dataset conditions testing
+#   specific_wells= c("MCF10A_BEZ235_1_-_0",
+#                     "MCF10A_BYL719_3.1623_-_0",
+#                     "MCF10A_Dasatinib_2_-_0",
+#                     "MCF10A_Lapatinib_3.1623_-_0",
+#                     "MCF10A_Linsitinib_20_-_0",
+#                     "MCF10A_NVP-TAE684_10_-_0",
+#                     "MCF10A_Palbociclib_3.1623_-_0",
+#                     "MCF10A_Rapamycin_1_-_0",
+#                     "MCF10A_Saracatinib_10_-_0",
+#                     "MCF10A_Torin2_0.31623_-_0",
+#                     "MCF10A_Trametinib_3.1623_-_0",
+#                     "MCF7_BEZ235_1_-_0" ,
+#                     "MCF7_BYL719_3.1623_-_0",
+#                     "MCF7_Dasatinib_2_-_0",
+#                     "MCF7_Lapatinib_10_-_0",
+#                     "MCF7_Linsitinib_3.1623_-_0",
+#                     "MCF7_NVP-TAE684_10_-_0",
+#                     "MCF7_Palbociclib_3.1623_-_0",
+#                     "MCF7_Saracatinib_10_-_0" ,
+#                     "MCF7_Trametinib_3.1623_-_0")
+#   
+#   
+#   list_wells_save = list_wells
+#   list_wells = list_wells_save[names(list_wells_save) %in% specific_wells] 
+#   names_wells = names(list_wells)
+#   
+  
   
   #######################################################
   #             Characteristic Direction                #
@@ -202,30 +230,21 @@ for(f in 1:ncol(dataset_dataframe)){
   print(names_wells)
   names_wells = names(list_wells)
   
-  expression_file = matrix(0,nrow(expressed_rows)-1,length(list_wells)+2)
-  names_expression = c(CellLine_level[1],CellLine_level[2],matrix(0,1,length(list_wells)))
-  rownames(expression_file)=expressed_rows[2:nrow(expressed_rows),2]
+  # results files
+  ch_dir_file = matrix(0,nrow=nrow(expressed_rows)-1,ncol=length(list_wells)*6)
+  names_replicate = matrix(0,1,length(list_wells)*6)
+  indexes = seq(1,length(list_wells)*6,6)
+  angle_file = matrix(0,1,ncol=length(list_wells)*3)
+  name_angle = matrix(0,1,length(list_wells)*3)
+  index_angle =  seq(1,length(list_wells)*3,3)
   
-  ch_dir_file = matrix(0,nrow=nrow(expressed_rows)-1,ncol=length(list_wells)*2)
-  names_replicate = matrix(0,1,length(list_wells)*2)
-  indexes = seq(1,length(list_wells)*2,2)
-  
-  
-  for (el in 1:length(list_wells)){
+  length(list_wells)
+  for (el in 1:2){
     print(names_wells[el])
     CL = unlist(strsplit(names_wells[el],"_"))
     control = control_total[[CL[1]]]
     
-    if(CL[[1]] == CellLine_level[1]){
-      expression_file[,1] = rowMeans(as.matrix(control[,2:ncol(control)]))
-    }else{
-      expression_file[,2] = rowMeans(as.matrix(control[,2:ncol(control)]))
-    }
-    
     temp_count = Select_DataFrame(total[[1]],list_wells[[el]]) 
-    expression_file[,2+el]=rowMeans(as.matrix(temp_count[,2:ncol(temp_count)]))
-    
-    names_expression[2+el]=names_wells[el]
     print(list_wells[[el]])
     
     # remove equals row
@@ -246,30 +265,95 @@ for(f in 1:ncol(dataset_dataframe)){
       real_ctl =  Select_raws_other_DF(exp,ctl)
       real_exp =  Select_raws_other_DF(real_ctl,exp)
     }
+    
+    if(ncol(real_exp)!=4){
 
-    chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),as.matrix(real_exp[,2:ncol(real_exp)]),real_ctl[,1]) 
-    names_replicate[indexes[el]] = names_wells[el]
-    names_replicate[indexes[el]+1] = names_wells[el]
-
-    nb_gene = nrow(chdir_result)
-    
-    ch_dir_file[1:nb_gene,indexes[el]] = rownames(chdir_result)
-    ch_dir_file[1:nb_gene,indexes[el]+1] = chdir_result[,1]
-    
-    
-    
-    
-    
+      test_combination = list(list(1,2),list(1,3),list(1,4),list(3,4),list(2,4),list(2,3))
+      rownames(ch_dir_file)=real_ctl[,1]
+      
+      names_replicate[indexes[el]] = names_wells[el] 
+      # compute chdir for each replicate combination
+      for(t in 1:length(test_combination)){
+        
+        chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),
+                             as.matrix(real_exp[,unlist(test_combination[[t]])+1]),
+                             real_ctl[,1])
+        print(paste("rep",c(as.character(unlist(test_combination[[t]]))),collapse = " "))
+        
+        
+        if(t>1){
+          names_replicate[indexes[el]+t-1] = paste("rep",c(as.character(unlist(test_combination[[t]]))),collapse = " ")
+        }
+        
+        if (nrow(chdir_result) == nrow(ch_dir_file)){
+          ch_dir_file[,indexes[el]+t-1] = chdir_result[order(rownames(chdir_result)),]
+        }else{
+          for(g in 1:length(rownames(ch_dir_file))){
+            index = grep(rownames(ch_dir_file)[g],rownames(chdir_result),fixed=T)
+            ch_dir_file[g,indexes[el]+t-1] = chdir_result[index[1],1]
+          }
+        }
+      }
+      
+      
+      # compute chdir angle between replicates
+      angle_file[index_angle[el]] = as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]+3])
+      angle_file[index_angle[el]+1]= as.numeric(ch_dir_file[,indexes[el]+1])%*%as.numeric(ch_dir_file[,indexes[el]+4])
+      angle_file[index_angle[el]+2]= as.numeric(ch_dir_file[,indexes[el]+2])%*%as.numeric(ch_dir_file[,indexes[el]+5])
+      name_angle[index_angle[el]]=names_wells[el] 
+      name_angle[index_angle[el]+1]="rep (13-24)"
+      name_angle[index_angle[el]+2]="rep (14-23)"
+    }else{
+      test_combination = list(list(1,2),list(1,3),list(2,3),list(3),list(2),list(1))
+      rownames(ch_dir_file)=real_ctl[,1]
+      
+      names_replicate[indexes[el]] = names_wells[el] 
+      # compute chdir for each replicate combination
+      for(t in 1:length(test_combination)){
+        
+        chdir_result = chdir(as.matrix(real_ctl[,2:ncol(real_ctl)]),
+                             as.matrix(real_exp[,unlist(test_combination[[t]])+1]),
+                             real_ctl[,1])
+        print(paste("rep",c(as.character(unlist(test_combination[[t]]))),collapse = " "))
+        
+        
+        if(t>1){
+          names_replicate[indexes[el]+t-1] = paste("rep",c(as.character(unlist(test_combination[[t]]))),collapse = " ")
+        }
+        
+        if (nrow(chdir_result) == nrow(ch_dir_file)){
+          ch_dir_file[,indexes[el]+t-1] = chdir_result[order(rownames(chdir_result)),]
+        }else{
+          for(g in 1:length(rownames(ch_dir_file))){
+            index = grep(rownames(ch_dir_file)[g],rownames(chdir_result),fixed=T)
+            ch_dir_file[g,indexes[el]+t-1] = chdir_result[index[1],1]
+          }
+        }
+      }
+      
+      
+      # compute chdir angle between replicates
+      angle_file[index_angle[el]] = as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]+3])
+      angle_file[index_angle[el]+1]= as.numeric(ch_dir_file[,indexes[el]+1])%*%as.numeric(ch_dir_file[,indexes[el]+4])
+      angle_file[index_angle[el]+2]= as.numeric(ch_dir_file[,indexes[el]+2])%*%as.numeric(ch_dir_file[,indexes[el]+5])
+      name_angle[index_angle[el]]=names_wells[el] 
+      name_angle[index_angle[el]+1]="rep (13-2)"
+      name_angle[index_angle[el]+2]="rep (21-1)"
+      
+      
+      
     }
-    
 
+  }
+  
+  
   colnames(ch_dir_file) = names_replicate
   setwd(output)
-  write.table(ch_dir_file,file=paste(dataset,paste(type,"chdir.txt",sep="_"),sep="_"),sep = "\t")
+  write.table(ch_dir_file,file=paste(dataset,paste(type,"chdir_rep.txt",sep="_"),sep="_"),sep = "\t")
   
   
-  colnames(expression_file)=names_expression
+  colnames(angle_file)=name_angle
   setwd(output)
-  write.table(expression_file,file=paste(dataset,paste(type,"expression.txt",sep="_"),sep="_"),sep = "\t")
+  write.table(angle_file,file=paste(dataset,paste(type,"angle.txt",sep="_"),sep="_"),sep = "\t")
 }
 
