@@ -29,6 +29,7 @@ library(proxy)
 library(amap)
 library(ape)
 library(dendextend)
+library(bioDist)
 
 ##########################################################################################################################
 # Upload files
@@ -38,36 +39,35 @@ dataset_dataframe=as.matrix(read.csv("dataset_summary.csv",header=T,sep="\t"))
 setwd(processed_chdir)
 files = list.files()
 
-for(f in 2:length(files)){
+for(f in 7:length(files)){
   print("Loading files")
   print(files[f])
   keys = unlist(strsplit(files[f],"_",fixed=T))
-  setwd(processed_chdir)
-  input = read.delim(files[f],header=T,sep="\t")
-  
   output_DR = paste(used_DR,
                     paste("R_output",
                           paste(date,keys[1],sep="/"),sep="/"),sep="/")
   
-
-  
-  
-  processed_input = matrix(0,nrow(input),ncol(input)/2)
-  colnames(processed_input)=conditions=colnames(input)[seq(1,ncol(input),2)]
-  rownames(processed_input)=sort(input[,1])
-  
-  print("processing")
-  for (i in 1:length(rownames(processed_input))){
-    for (j in seq(2,ncol(input),2)){
-      index = grep(rownames(processed_input)[i],input[,j-1],fixed=T)
-      processed_input[i,j/2] = input[index[1],j]
-    }
-  }
-  
-  processed_input[is.na(processed_input)] <- 0
   setwd(output_DR)
-  write.table(processed_input,file=paste(keys[1],paste(keys[2],"CHDIR.txt",sep="_"),sep="_"),sep = "\t")
-  print("processed file saved")
+  processed_input = read.delim(paste(keys[1],paste(keys[2],"CHDIR.txt",sep="_"),sep="_"),header=T,sep=",")
+  processed_input = read.csv(paste(keys[1],paste(keys[2],"CHDIR.csv",sep="_"),sep="_"),header=T,sep=",")
+  conditions=colnames(processed_input)
+
+#   processed_input = matrix(0,nrow(input),ncol(input)/2)
+#   colnames(processed_input)=conditions=colnames(input)[seq(1,ncol(input),2)]
+#   rownames(processed_input)=sort(input[,1])
+#   
+#   print("processing")
+#   for (i in 1:length(rownames(processed_input))){
+#     for (j in seq(2,ncol(input),2)){
+#       index = grep(rownames(processed_input)[i],input[,j-1],fixed=T)
+#       processed_input[i,j/2] = input[index[1],j]
+#     }
+#   }
+#   
+#   processed_input[is.na(processed_input)] <- 0
+#   setwd(output_DR)
+#   write.table(processed_input,file=paste(keys[1],paste(keys[2],"CHDIR.txt",sep="_"),sep="_"),sep = "\t")
+#   print("processed file saved")
   
   #####################################################################################################################
   # divide dataset
@@ -88,36 +88,47 @@ for(f in 2:length(files)){
   }
   
   colnames(processed_input)=short_cond
+  
+  output_DR = paste(used_DR,
+                    paste("R_output",
+                          paste("160203",keys[1],sep="/"),sep="/"),sep="/")
+  
   setwd(output_DR)
   for (i in 1:length(cell_line)){
     print(cell_line[i])
     # compute cluster
-    dist_cosine = dist(t(processed_input[,cell_line_index[[i]][1]:cell_line_index[[i]][length(cell_line_index[[i]])]]),method="cosine")
-    dist_spearman = Dist(t(processed_input[,cell_line_index[[i]][1]:cell_line_index[[i]][length(cell_line_index[[i]])]]),method="spearman")
+    # dist_cosine = dist(t(processed_input[,cell_line_index[[i]][1]:cell_line_index[[i]][length(cell_line_index[[i]])]]),method="cosine")
+    # dist_spearman = Dist(t(processed_input[,cell_line_index[[i]][1]:cell_line_index[[i]][length(cell_line_index[[i]])]]),method="spearman")
     
-    clus_cosine = hclust(dist_cosine)
-    clus_spearman = hclust(dist_spearman)
+
+    dist_spearman = spearman.dist(
+      t(matrix(as.numeric(unlist(processed_input[,cell_line_index[[i]][1]:cell_line_index[[i]][length(cell_line_index[[i]])]])),
+               nrow=nrow(processed_input))))
+
+    
+    # clus_cosine = hclust(dist_cosine)
+    clus_spearman = hcluster(dist_spearman)
     
 
     # graphics option 
     nb_cluster = 5
     ################################## -> Cosine Distance
-    hc = clus_cosine
-    dend=as.dendrogram(hc)
-    par(mfrow = c(1,1), mar = c(5,2,1,15),cex=0.6,font=3)
-    dend <- dend %>%
-      color_branches(k = nb_cluster) %>%
-      set("branches_lwd", c(2,1,2)) %>%
-      set("branches_lty", c(1,2,1))
-    
-    dend <- color_labels(dend, k = nb_cluster)
-    plot(dend,horiz=T,cex=0.6,main = paste(cell_line[i],"Cosine Distance"))
-    dev.print(device = png, file = paste(date,
-                                         paste(keys[1],
-                                               paste(keys[2],
-                                                     paste(cell_line[i],"cosine_cluster.png",sep="_"),sep="_"),sep="_"),sep="_"), 
-              height = 1000)
-    dev.off()  
+#     hc = clus_cosine
+#     dend=as.dendrogram(hc)
+#     par(mfrow = c(1,1), mar = c(5,2,1,15),cex=0.6,font=3)
+#     dend <- dend %>%
+#       color_branches(k = nb_cluster) %>%
+#       set("branches_lwd", c(2,1,2)) %>%
+#       set("branches_lty", c(1,2,1))
+#     
+#     dend <- color_labels(dend, k = nb_cluster)
+#     plot(dend,horiz=T,cex=0.6,main = paste(cell_line[i],"Cosine Distance"))
+#     dev.print(device = png, file = paste(date,
+#                                          paste(keys[1],
+#                                                paste(keys[2],
+#                                                      paste(cell_line[i],"cosine_cluster.png",sep="_"),sep="_"),sep="_"),sep="_"), 
+#               height = 1000)
+#     dev.off()  
     
     
     ################################## -> Spearman Distance
@@ -131,7 +142,7 @@ for(f in 2:length(files)){
     
     dend <- color_labels(dend, k = nb_cluster)
     plot(dend,horiz=T,cex=0.6,main = paste(cell_line[i],"Spearman Distance"))
-    dev.print(device = png, file = paste(date,
+    dev.print(device = png, file = paste("160203",
                                          paste(keys[1],
                                                paste(keys[2],
                                                      paste(cell_line[i],"spearman_cluster.png",sep="_"),sep="_"),sep="_"),sep="_"),

@@ -23,12 +23,6 @@ Upload_design_files <- function(DR_design){
   
   
   nb_design = as.integer(max(as.vector(output_list$plateID$DesignNumber)))
-#   #Compute the number of replicates
-#   if ("Experiment" %in% colnames(output_list$plateID)){
-#     nb_replicates = as.integer(table(factor(output_list$plateID$Experiment, levels = "mRNA")))
-#   }else{
-#     nb_replicates = nrow(output_list$plateID)     
-#   }
   
   print("Loading design files ...")
   for(i in 1:nb_design){
@@ -47,13 +41,9 @@ Upload_design_files <- function(DR_design){
 # PROCESS = Merge barcode file with appropiate design file
 # Output = Barcode of selected rawdata
 
-# barcode_file = raw_design_files$plateID
-# design_file = raw_design_files[[2]]
-
-Rawdata_files_name <- function(barcode_file, design_file, design_number, time_point){
+Rawdata_files_name <- function(barcode_file, design_number){
   barcode_design = barcode_file[barcode_file$DesignNumber == design_number &
-                                  barcode_file$Experiment == "mRNA" &
-                                  barcode_file$Time == time_point ,]
+                                  barcode_file$Experiment == "mRNA"]
   
   return(barcode_design$Barcode)
 }
@@ -87,18 +77,14 @@ Show_rawdata_names <- function(DR_rawdata,data_type){
   right_file_index = order(adjusted_name_vector)
   print(sort(adjusted_name_vector))
   
-  
 }
-
-
-
 
 ################################################################################################################
 # Input = Design data directory
 # PROCESS = Upload design files
 # Output = list of design files
 
-Upload_rawdata_files <- function(DR_rawdata,barcode,data_type,file_number){
+Upload_rawdata_files <- function(DR_rawdata,data_type,file_number){
   output_list = list()
   
   # upload rawdata files  
@@ -123,7 +109,7 @@ Upload_rawdata_files <- function(DR_rawdata,barcode,data_type,file_number){
     }
   }
   right_file_index = order(adjusted_name_vector)
-  print(sort(adjusted_name_vector))
+  #print(sort(adjusted_name_vector))
   
   for (i in file_number){
     raw <- paste("raw", i, sep = "_")

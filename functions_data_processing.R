@@ -8,20 +8,50 @@ Minimum_reads <- function(data_frame,nb_reads){
   
   print(quantile(total_counts,seq(0,1,0.05)))
   
+  # first representation
   barplot(total_counts[1:100], col="dodgerblue4", main="Total reads count BEFORE normalisation")
   abline(nb_reads,0,col="red")
-#   boxplot(total_counts,col="dodgerblue4")
-#   hist(total_counts,col="dodgerblue4")
+
+  # whole plate
+  wells_name=substr(colnames(data_frame)[2:ncol(data_frame)],8,10)
+  test = matrix(0,ncol = 16,nrow=24)
+  colnames(test)=c("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P")
+  rownames(test)=as.character(seq(1,24))
+  for (i in 1:length(wells_name)){
+    columns = substr(wells_name,1,1)
+    rows = as.numeric(substr(wells_name,2,3))
+    test[rows[i],columns[i]]=total_counts[i]
+  }
+  cols <- c(colorRampPalette(c("cornflowerblue"))(1),
+            colorRampPalette(c("yellow", "red"))(25))
+  heatmap.2(test, Rowv = FALSE, Colv = FALSE, dendrogram = "none",
+            notecol = "black", notecex = 0.01,col=cols,
+            trace = "none", key = FALSE, margins = c(5, 10),
+            sepcolor="white",colsep=1:72,srtCol=0, rowsep=1:57,
+            main = paste("Plate",paste(dataset, paste(type,paste(": total reads >",threshold)))))
   
   temp_data = data_frame[,2:ncol(data_frame)]
   X = data_frame[,1]
   new_data_frame = cbind(X,temp_data[,total_counts > nb_reads])
   return(new_data_frame)
-  
 }
 
-synchronize_quality_wells <- function(data_frame_names,design){
+synchronize_quality_wells <- function(data_frame_names,design,threshold,dataset){
   wells_name=substr(data_frame_names,8,10)
+  test = matrix(5,ncol = 16,nrow=24)
+  colnames(test)=c("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P")
+  rownames(test)=as.character(seq(1,24))
+  for (i in 1:length(wells_name)){
+    columns = substr(wells_name[2:length(wells_name)],1,1)
+    rows = as.numeric(substr(wells_name[2:length(wells_name)],2,3))
+    test[rows[i-1],columns[i-1]]=10
+  }
+  heatmap.2(test, Rowv = FALSE, Colv = FALSE, dendrogram = "none",
+             notecol = "black", notecex = 0.01,col=c("red","darkseagreen"),
+            trace = "none", key = FALSE, margins = c(5, 10),
+            sepcolor="white",colsep=1:72,srtCol=0, rowsep=1:57,
+            main = paste("Plate",paste(dataset, paste(type,paste(": total reads >",threshold)))))
+
   new_design = design[design$Well %in% wells_name,]
   return(new_design)
 }

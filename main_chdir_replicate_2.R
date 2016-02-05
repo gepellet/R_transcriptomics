@@ -30,8 +30,7 @@ setwd(processed)
 dataset_dataframe=as.matrix(read.csv("dataset_summary.csv",header=T,sep="\t"))
 
 
-
-for(f in 11:ncol(dataset_dataframe)){
+for(f in 5:8){
   
   File_number = f
   dataset=dataset_dataframe[1,File_number]
@@ -44,7 +43,7 @@ for(f in 11:ncol(dataset_dataframe)){
                                      paste(dataset,"control",sep="/"),sep = "/"),sep = ""),sep="")
   output = paste(used_DR,
                  paste("R_output",date
-                      ,sep = "/"),sep = "")
+                       ,sep = "/"),sep = "")
   
   output_chdir = paste(used_DR,
                        paste("R_output",
@@ -194,32 +193,32 @@ for(f in 11:ncol(dataset_dataframe)){
   
   ##########################################################################################################################
   # Dataset conditions testing
-#   specific_wells= c("MCF10A_BEZ235_1_-_0",
-#                     "MCF10A_BYL719_3.1623_-_0",
-#                     "MCF10A_Dasatinib_2_-_0",
-#                     "MCF10A_Lapatinib_3.1623_-_0",
-#                     "MCF10A_Linsitinib_20_-_0",
-#                     "MCF10A_NVP-TAE684_10_-_0",
-#                     "MCF10A_Palbociclib_3.1623_-_0",
-#                     "MCF10A_Rapamycin_1_-_0",
-#                     "MCF10A_Saracatinib_10_-_0",
-#                     "MCF10A_Torin2_0.31623_-_0",
-#                     "MCF10A_Trametinib_3.1623_-_0",
-#                     "MCF7_BEZ235_1_-_0" ,
-#                     "MCF7_BYL719_3.1623_-_0",
-#                     "MCF7_Dasatinib_2_-_0",
-#                     "MCF7_Lapatinib_10_-_0",
-#                     "MCF7_Linsitinib_3.1623_-_0",
-#                     "MCF7_NVP-TAE684_10_-_0",
-#                     "MCF7_Palbociclib_3.1623_-_0",
-#                     "MCF7_Saracatinib_10_-_0" ,
-#                     "MCF7_Trametinib_3.1623_-_0")
-#   
-#   
-#   list_wells_save = list_wells
-#   list_wells = list_wells_save[names(list_wells_save) %in% specific_wells] 
-#   names_wells = names(list_wells)
-#   
+  #   specific_wells= c("MCF10A_BEZ235_1_-_0",
+  #                     "MCF10A_BYL719_3.1623_-_0",
+  #                     "MCF10A_Dasatinib_2_-_0",
+  #                     "MCF10A_Lapatinib_3.1623_-_0",
+  #                     "MCF10A_Linsitinib_20_-_0",
+  #                     "MCF10A_NVP-TAE684_10_-_0",
+  #                     "MCF10A_Palbociclib_3.1623_-_0",
+  #                     "MCF10A_Rapamycin_1_-_0",
+  #                     "MCF10A_Saracatinib_10_-_0",
+  #                     "MCF10A_Torin2_0.31623_-_0",
+  #                     "MCF10A_Trametinib_3.1623_-_0",
+  #                     "MCF7_BEZ235_1_-_0" ,
+  #                     "MCF7_BYL719_3.1623_-_0",
+  #                     "MCF7_Dasatinib_2_-_0",
+  #                     "MCF7_Lapatinib_10_-_0",
+  #                     "MCF7_Linsitinib_3.1623_-_0",
+  #                     "MCF7_NVP-TAE684_10_-_0",
+  #                     "MCF7_Palbociclib_3.1623_-_0",
+  #                     "MCF7_Saracatinib_10_-_0" ,
+  #                     "MCF7_Trametinib_3.1623_-_0")
+  #   
+  #   
+  #   list_wells_save = list_wells
+  #   list_wells = list_wells_save[names(list_wells_save) %in% specific_wells] 
+  #   names_wells = names(list_wells)
+  #   
   
   
   #######################################################
@@ -231,9 +230,9 @@ for(f in 11:ncol(dataset_dataframe)){
   names_wells = names(list_wells)
   
   # results files
-  ch_dir_file = matrix(0,nrow=nrow(expressed_rows)-1,ncol=length(list_wells)*6)
-  names_replicate = matrix(0,1,length(list_wells)*6)
-  indexes = seq(1,length(list_wells)*6,6)
+  ch_dir_file = matrix(0,nrow=nrow(expressed_rows)-1,ncol=length(list_wells)*3)
+  names_replicate = matrix(0,1,length(list_wells)*3)
+  indexes = seq(1,length(list_wells)*3,3)
   angle_file = matrix(0,1,ncol=length(list_wells)*3)
   name_angle = matrix(0,1,length(list_wells)*3)
   index_angle =  seq(1,length(list_wells)*3,3)
@@ -266,9 +265,9 @@ for(f in 11:ncol(dataset_dataframe)){
       real_exp =  Select_raws_other_DF(real_ctl,exp)
     }
     
-    if(ncol(real_exp)!=4){
-
-      test_combination = list(list(1,2),list(1,3),list(1,4),list(3,4),list(2,4),list(2,3))
+    if(ncol(real_exp)!=2){
+      
+      test_combination = list(list(1,2),list(1),list(2))
       rownames(ch_dir_file)=expressed_rows[2:nrow(expressed_rows),2]
       
       names_replicate[indexes[el]] = names_wells[el] 
@@ -295,16 +294,16 @@ for(f in 11:ncol(dataset_dataframe)){
         }
       }
       
-      
+      ch_dir_file[is.na(ch_dir_file)] <- 0
       # compute chdir angle between replicates
-      angle_file[index_angle[el]] = as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]+3])
-      angle_file[index_angle[el]+1]= as.numeric(ch_dir_file[,indexes[el]+1])%*%as.numeric(ch_dir_file[,indexes[el]+4])
-      angle_file[index_angle[el]+2]= as.numeric(ch_dir_file[,indexes[el]+2])%*%as.numeric(ch_dir_file[,indexes[el]+5])
+      angle_file[index_angle[el]] = as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]+1])
+      angle_file[index_angle[el]+1]= as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]+2])
+      angle_file[index_angle[el]+2]= as.numeric(ch_dir_file[,indexes[el]+1])%*%as.numeric(ch_dir_file[,indexes[el]+2])
       name_angle[index_angle[el]]=names_wells[el] 
-      name_angle[index_angle[el]+1]="rep (13-24)"
-      name_angle[index_angle[el]+2]="rep (14-23)"
+      name_angle[index_angle[el]+1]="rep (12-2)"
+      name_angle[index_angle[el]+2]="rep (1-2)"
     }else{
-      test_combination = list(list(1,2),list(1,3),list(2,3),list(3),list(2),list(1))
+      test_combination = list(list(1))
       rownames(ch_dir_file)=expressed_rows[2:nrow(expressed_rows),2]
       
       names_replicate[indexes[el]] = names_wells[el] 
@@ -333,17 +332,14 @@ for(f in 11:ncol(dataset_dataframe)){
       
       
       # compute chdir angle between replicates
-      angle_file[index_angle[el]] = as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]+3])
-      angle_file[index_angle[el]+1]= as.numeric(ch_dir_file[,indexes[el]+1])%*%as.numeric(ch_dir_file[,indexes[el]+4])
-      angle_file[index_angle[el]+2]= as.numeric(ch_dir_file[,indexes[el]+2])%*%as.numeric(ch_dir_file[,indexes[el]+5])
+      angle_file[index_angle[el]] = as.numeric(ch_dir_file[,indexes[el]])%*%as.numeric(ch_dir_file[,indexes[el]])
       name_angle[index_angle[el]]=names_wells[el] 
-      name_angle[index_angle[el]+1]="rep (13-2)"
-      name_angle[index_angle[el]+2]="rep (21-1)"
+
       
       
       
     }
-
+    
   }
   
   
