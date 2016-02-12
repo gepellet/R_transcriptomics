@@ -30,7 +30,7 @@ Minimum_reads <- function(data_frame,nb_reads){
             notecol = "black", notecex = 0.01,col=cols,
             trace = "none", key = FALSE, margins = c(5, 10),
             sepcolor="white",colsep=1:72,srtCol=0, rowsep=1:57,
-            main = paste("Plate",paste(dataset,paste(" : total reads >",threshold))))
+            main = paste("Plate",paste(dataset,paste(" : total reads >",nb_reads))))
   
   temp_data = data_frame[,2:ncol(data_frame)]
   X = data_frame[,1]
