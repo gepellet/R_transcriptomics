@@ -224,7 +224,7 @@ Upload_files <- function(nb_design,DR_design,DR_rawdata,data_type){
   return(list_data)
 }
 
-
+##########################################################################################################
 # COORDINATE columns name
 Adjust_Well_Name <- function(name_vector,add_0){
   adjusted_name_vector = c()

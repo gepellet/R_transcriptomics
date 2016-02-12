@@ -9,7 +9,9 @@ Minimum_reads <- function(data_frame,nb_reads){
   print(quantile(total_counts,seq(0,1,0.05)))
   
   # first representation
-  barplot(total_counts[1:100], col="dodgerblue4", main="Total reads count BEFORE normalisation")
+  names(total_counts) = substr(names(total_counts),8,10)
+  barplot(total_counts[1:24], col="dodgerblue4", main="Total read-count per well BEFORE normalisation",
+          cex.names=0.8,xlab="Wells",ylab="Total number of reads")
   abline(nb_reads,0,col="red")
 
   # whole plate
@@ -23,12 +25,12 @@ Minimum_reads <- function(data_frame,nb_reads){
     test[rows[i],columns[i]]=total_counts[i]
   }
   cols <- c(colorRampPalette(c("cornflowerblue"))(1),
-            colorRampPalette(c("yellow", "red"))(25))
-  heatmap.2(test, Rowv = FALSE, Colv = FALSE, dendrogram = "none",
+            colorRampPalette(c("yellow", "red"))(20))
+  heatmap.2(t(test), Rowv = FALSE, Colv = FALSE, dendrogram = "none",
             notecol = "black", notecex = 0.01,col=cols,
             trace = "none", key = FALSE, margins = c(5, 10),
             sepcolor="white",colsep=1:72,srtCol=0, rowsep=1:57,
-            main = paste("Plate",paste(dataset, paste(type,paste(": total reads >",threshold)))))
+            main = paste("Plate",paste(dataset,paste(" : total reads >",threshold))))
   
   temp_data = data_frame[,2:ncol(data_frame)]
   X = data_frame[,1]
